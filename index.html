@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konkurs Informatyczny - Dark Quiz (70 pytań)</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-hover: #334155;
+            --border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.15);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 750px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.6rem;
+            color: #60a5fa;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--card);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            color: var(--text);
+            border-color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quiz-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .progress-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 0.85rem;
+        }
+
+        .category-tag {
+            color: #93c5fd;
+            font-weight: 600;
+        }
+
+        .source-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-arkusz {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .badge-nowe {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 22px;
+        }
+
+        code {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 3px 7px;
+            border-radius: 5px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.95em;
+            border: 1px solid #334155;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            background: #0f172a;
+            color: var(--text);
+            border: 2px solid var(--border);
+            padding: 15px 18px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: #172554;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .option-btn.correct {
+            border-color: var(--success);
+            background: var(--success-bg);
+            color: #86efac;
+            font-weight: 600;
+        }
+
+        .option-btn.wrong {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+            color: #fca5a5;
+        }
+
+        .explanation-box {
+            margin-top: 20px;
+            padding: 15px 18px;
+            background: #0f172a;
+            border-left: 4px solid var(--primary);
+            border-radius: 6px;
+            font-size: 0.98rem;
+            line-height: 1.5;
+            color: #cbd5e1;
+            display: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            gap: 12px;
+        }
+
+        .btn-nav {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .btn-nav:disabled {
+            background: #334155;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #475569;
+        }
+
+        .summary-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: #0f172a;
+            border: 6px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .score-big {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .score-sub {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Konkurs Informatyczny – Quiz</h1>
+    </header>
+
+    <div class="filter-bar">
+        <button class="filter-btn active" onclick="setMode('all', this)">Wszystkie (70)</button>
+        <button class="filter-btn" onclick="setMode('arkusz', this)">Z arkusza (40)</button>
+        <button class="filter-btn" onclick="setMode('nowe', this)">Dodatkowe (30)</button>
+    </div>
+
+    <div class="quiz-card" id="quiz-box">
+        <div class="progress-wrapper">
+            <div class="progress-info">
+                <span id="q-counter">Pytanie 1 z 70</span>
+                <span id="score-counter">Punkty: 0</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="meta-row">
+            <span class="category-tag" id="q-category">Dział</span>
+            <span class="source-badge" id="q-badge">Źródło</span>
+        </div>
+
+        <div class="question-text" id="q-text">Treść pytania</div>
+
+        <div class="options-list" id="options-container"></div>
+
+        <div class="explanation-box" id="explanation-box"></div>
+
+        <div class="nav-buttons">
+            <button class="btn-nav btn-secondary" id="prev-btn" onclick="prevQuestion()">&larr; Poprzednie</button>
+            <button class="btn-nav" id="next-btn" onclick="nextQuestion()">Następne &rarr;</button>
+        </div>
+    </div>
+
+    <div class="quiz-card summary-screen" id="summary-box">
+        <h2>Koniec quizu!</h2>
+        <div class="score-circle">
+            <span class="score-big" id="final-percent">0%</span>
+            <span class="score-sub" id="final-points">0 / 70 pkt</span>
+        </div>
+        <p id="final-message" style="color: #cbd5e1; margin-bottom: 25px;"></p>
+        <button class="btn-nav" onclick="restartQuiz()">Rozwiąż ponownie</button>
+    </div>
+</div>
+
+<script>
+const allQuestions = [
+    // --- ZADANIA Z ARKUSZA (1 - 40) ---
+    { source: "arkusz", category: "Druk 3D", q: "1. Proces tworzenia obiektów 3D poprzez nakładanie warstw materiału to druk:", options: ["A. atramentowy", "B. addytywny", "C. tonerowy", "D. subtraktywny"], answer: 1, exp: "Druk addytywny (przyrostowy) polega na budowaniu obiektu warstwa po warstwie." },
+    { source: "arkusz", category: "Grafika komputerowa", q: "2. Który format jest często używany do logo i ikon w Internecie?", options: ["A. PSD", "B. BMP", "C. JPG", "D. SVG"], answer: 3, exp: "SVG to skalowalna grafika wektorowa, idealna do logotypów i ikon na stronach WWW, ponieważ nie traci jakości przy powiększaniu." },
+    { source: "arkusz", category: "Druk 3D", q: "3. Jak nazywa się proces usuwania nadmiarowego materiału po wydruku 3D?", options: ["A. Laminowanie", "B. Postprocessing", "C. Archiwizacja", "D. Rendering"], answer: 1, exp: "Postprocessing to obróbka końcowa wydruku 3D (np. usuwanie podpór, szlifowanie, malowanie)." },
+    { source: "arkusz", category: "Programowanie (Python)", q: "4. Co zwróci kod: <code>print(len(\"Informatyka\"))</code>?", options: ["A. 11", "B. 12", "C. 13", "D. 10"], answer: 0, exp: "Słowo „Informatyka” składa się dokładnie z 11 znaków." },
+    { source: "arkusz", category: "Programowanie", q: "5. Jaką zmienną należy użyć do przechowywania liczby całkowitej?", options: ["A. Boolean", "B. Integer", "C. String", "D. Float"], answer: 1, exp: "Integer (int) służy do przechowywania liczb całkowitych. Float to liczby zmiennoprzecinkowe, String to tekst, a Boolean to wartość logiczna." },
+    { source: "arkusz", category: "Bezpieczeństwo", q: "6. Atak przeciążający serwer wieloma zapytaniami to:", options: ["A. Brute Force", "B. Keylogger", "C. DDoS", "D. Phishing"], answer: 2, exp: "DDoS (Distributed Denial of Service) polega na zasypaniu serwera ogromną liczbą zapytań z wielu urządzeń jednocześnie." },
+    { source: "arkusz", category: "Algorytmika", q: "7. Jaka jest reszta z dzielenia 245 przez 7?", options: ["A. 5", "B. 2", "C. 1", "D. 0"], answer: 3, exp: "245 / 7 = 35 bez reszty (35 * 7 = 245), więc reszta wynosi 0." },
+    { source: "arkusz", category: "Algorytmika", q: "8. Ile wynosi NWD(48, 18)?", options: ["A. 2", "B. 6", "C. 12", "D. 18"], answer: 1, exp: "Największy wspólny dzielnik liczb 48 i 18 to 6 (48 = 6*8, 18 = 6*3)." },
+    { source: "arkusz", category: "Arkusz kalkulacyjny", q: "9. Która funkcja oblicza resztę z dzielenia?", options: ["A. =MOD(A1;B1)", "B. =DZIEL(A1;B1)", "C. =ILOCZYN(A1;B1)", "D. =CAŁK(A1;B1)"], answer: 0, exp: "Funkcja MOD zwraca resztę z dzielenia dwóch liczb." },
+    { source: "arkusz", category: "Algorytmika", q: "10. Który algorytm wyznacza kolejne liczby: 0, 1, 1, 2, 3, 5, 8...?", options: ["A. Euklidesa", "B. modulo", "C. Zachłanny", "D. Fibonacciego"], answer: 3, exp: "To ciąg Fibonacciego, w którym każda kolejna liczba jest sumą dwóch poprzednich." },
+    { source: "arkusz", category: "Algorytmika", q: "11. Ile wynosi NWW liczb 4 i 6?", options: ["A. 10", "B. 6", "C. 12", "D. 24"], answer: 2, exp: "Najmniejsza wspólna wielokrotność liczb 4 i 6 to 12." },
+    { source: "arkusz", category: "Grafika komputerowa (P/F)", q: "12a. Oceń zdanie: Grafika rastrowa składa się z pikseli.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Obraz rastrowy to siatka kolorowych punktów zwanych pikselami." },
+    { source: "arkusz", category: "Grafika komputerowa (P/F)", q: "12b. Oceń zdanie: Grafika wektorowa traci jakość przy powiększeniu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Grafika wektorowa opisana jest wzorami matematycznymi, dlatego można ją dowolnie powiększać bez utraty jakości." },
+    { source: "arkusz", category: "Grafika komputerowa (P/F)", q: "12c. Oceń zdanie: PNG to format grafiki rastrowej.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. PNG (Portable Network Graphics) to bezstratny format grafiki rastrowej obsługujący przezroczystość." },
+    { source: "arkusz", category: "Grafika komputerowa (P/F)", q: "12d. Oceń zdanie: SVG to format grafiki wektorowej.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. SVG (Scalable Vector Graphics) to popularny format grafiki wektorowej." },
+    { source: "arkusz", category: "Arkusz kalkulacyjny (P/F)", q: "13a. Oceń zdanie: Adres $A$1 w formule jest adresem względnym.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Znak dolara ($) przed kolumną i wierszem oznacza adres bezwzględny (stały przy kopiowaniu)." },
+    { source: "arkusz", category: "Arkusz kalkulacyjny (P/F)", q: "13b. Oceń zdanie: W Excelu funkcja =ŚREDNIA(A1:A5) i =SUMA(A1:A5)/5 dają ten sam wynik, jeśli w zakresie są tylko liczby.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Gdy wszystkie 5 komórek zawiera liczby, średnia arytmetyczna jest równa ich sumie podzielonej przez 5." },
+    { source: "arkusz", category: "Arkusz kalkulacyjny (P/F)", q: "13c. Oceń zdanie: Wzór =A1&amp;B1 łączy teksty z komórek A1 i B1 bez odstępu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Operator &amp; służy do łączenia (konkatenacji) ciągów tekstowych bezpośrednio ze sobą." },
+    { source: "arkusz", category: "Arkusz kalkulacyjny (P/F)", q: "13d. Oceń zdanie: Wzór =A1&amp;A2 dodaje wartości liczbowe z dwóch komórek.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Operator &amp; łączy zawartość jako tekst (np. 2 i 3 da '23'), a nie dodaje ich matematycznie." },
+    { source: "arkusz", category: "Programowanie (P/F)", q: "14a. Oceń zdanie: Pętla, która powtarza się określoną liczbę razy, to pętla while.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Pętla wykonująca się określoną liczbę razy to pętla for (iteracyjna). Pętla while działa dopóki spełniony jest warunek." },
+    { source: "arkusz", category: "Programowanie (P/F)", q: "14b. Oceń zdanie: W Scratchu do tworzenia programu używa się: Linijek tekstu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Scratch jest językiem programowania wizualnego, w którym program tworzy się z kolorowych bloczków." },
+    { source: "arkusz", category: "Programowanie (P/F)", q: "14c. Oceń zdanie: „Debugowanie” programu oznacza usuwanie błędów.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Debugowanie to proces wyszukiwania i naprawiania błędów (bugów) w kodzie." },
+    { source: "arkusz", category: "Programowanie (P/F)", q: "14d. Oceń zdanie: Wynikiem działania 5 % 2 w Pythonie będzie liczba 1.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Operator % oznacza resztę z dzielenia (modulo). Reszta z dzielenia 5 przez 2 wynosi 1." },
+    { source: "arkusz", category: "Tworzenie stron HTML (P/F)", q: "15a. Oceń zdanie: Sekcja <code>&lt;head&gt;</code> zawiera informacje niewidoczne bezpośrednio na stronie, np. tytuł i metadane.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. W sekcji head umieszczamy m.in. tytuł karty, kodowanie znaków oraz linki do stylów CSS." },
+    { source: "arkusz", category: "Tworzenie stron HTML (P/F)", q: "15b. Oceń zdanie: Znacznik <code>&lt;em&gt;</code> sprawia, że tekst jest automatycznie pogrubiony.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Znacznik em wyróżnia tekst kursywą (pochyleniem). Za pogrubienie odpowiadają znaczniki strong lub b." },
+    { source: "arkusz", category: "Tworzenie stron HTML (P/F)", q: "15c. Oceń zdanie: Lista uporządkowana tworzona jest za pomocą <code>&lt;ul&gt;</code>.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Znacznik ul tworzy listę nieuporządkowaną (wypunktowaną). Lista uporządkowana (numerowana) to ol." },
+    { source: "arkusz", category: "Tworzenie stron HTML (P/F)", q: "15d. Oceń zdanie: Atrybut <code>target=\"_blank\"</code> w linku sprawia, że strona otwiera się w nowej karcie.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Atrybut target=\"_blank\" otwiera odnośnik w nowej karcie przeglądarki." },
+    { source: "arkusz", category: "Algorytmika (P/F)", q: "16a. Oceń zdanie: Liczby w systemie szesnastkowym mogą zawierać cyfry od 0 do 15.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. System szesnastkowy wykorzystuje cyfry od 0 do 9 oraz litery od A do F (odpowiadające wartościom 10–15)." },
+    { source: "arkusz", category: "Algorytmika (P/F)", q: "16b. Oceń zdanie: NWD i NWW liczb są zawsze liczbami pierwszymi.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Przykładowo NWD(12, 18) = 6, a 6 jest liczbą złożoną." },
+    { source: "arkusz", category: "Algorytmika (P/F)", q: "16c. Oceń zdanie: Aby sprawdzić, czy liczba n jest pierwsza, wystarczy sprawdzić dzielniki od 2 do n-1.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Choć optymalniej jest sprawdzać do pierwiastka z n, zakres od 2 do n-1 jest w pełni poprawny." },
+    { source: "arkusz", category: "Algorytmika (P/F)", q: "16d. Oceń zdanie: Aby dodać ułamki o różnych mianownikach, należy znaleźć NWW mianowników.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Najmniejszy wspólny mianownik dwóch ułamków to właśnie NWW ich mianowników." },
+    { source: "arkusz", category: "Podstawy CSS (P/F)", q: "17a. Oceń zdanie: W CSS można używać kolorów w formacie hex (np. #FF0000), RGB (np. rgb(255,0,0)) i nazwanych kolorów (np. red).", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Wszystkie trzy zapisy są w CSS poprawne i oznaczają kolor czerwony." },
+    { source: "arkusz", category: "Podstawy CSS (P/F)", q: "17b. Oceń zdanie: Właściwość <code>padding</code> określa odstęp między treścią elementu a jego obramowaniem.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Padding to margines wewnętrzny (między treścią a obramowaniem), a margin to margines zewnętrzny." },
+    { source: "arkusz", category: "Podstawy CSS (P/F)", q: "17c. Oceń zdanie: Właściwość <code>border</code> zmienia kolor tła elementu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Właściwość border ustawia obramowanie elementu. Za kolor tła odpowiada background-color." },
+    { source: "arkusz", category: "Podstawy CSS (P/F)", q: "17d. Oceń zdanie: Właściwość <code>text-decoration: underline;</code> usuwa podkreślenie tekstu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Wartość underline dodaje podkreślenie. Aby je usunąć, stosuje się text-decoration: none;." },
+    { source: "arkusz", category: "Multimedia (P/F)", q: "18a. Oceń zdanie: Animacje wektorowe są bardziej elastyczne niż rastrowe przy zmianie rozmiaru.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Animacje wektorowe można skalować do dowolnej rozdzielczości bez efektu pikselozy." },
+    { source: "arkusz", category: "Multimedia (P/F)", q: "18b. Oceń zdanie: WAV to format bezstratny dla plików audio.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. WAV przechowuje dźwięk bez straty jakości (w przeciwieństwie do stratnego formatu MP3)." },
+    { source: "arkusz", category: "Multimedia (P/F)", q: "18c. Oceń zdanie: Kodowanie wideo zmniejsza jego rozmiar, zachowując wszystkie szczegóły w 100%.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Standardowe kodeki wideo (np. H.264, MP4) stosują kompresję stratną, usuwając mało istotne detale." },
+    { source: "arkusz", category: "Multimedia (P/F)", q: "18d. Oceń zdanie: Skalowanie obrazu zawsze zachowuje jego proporcje automatycznie.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Zmiana tylko szerokości lub tylko wysokości zniekształci obraz, jeśli nie zablokujemy proporcji." },
+    { source: "arkusz", category: "Multimedia (P/F)", q: "18e. Oceń zdanie: Pliki wektorowe przechowują obraz za pomocą punktów, linii i krzywych.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. Grafika wektorowa opiera się na obiektach geometrycznych i krzywych Béziera." },
+
+    // --- 30 NOWYCH PYTAŃ DODATKOWYCH (41 - 70) ---
+    { source: "nowe", category: "Systemy liczbowe", q: "41. Ile wynosi liczba binarna <code>10110</code> zapisana w systemie dziesiętnym?", options: ["A. 18", "B. 22", "C. 26", "D. 14"], answer: 1, exp: "1*16 + 0*8 + 1*4 + 1*2 + 0*1 = 16 + 4 + 2 = 22." },
+    { source: "nowe", category: "Systemy liczbowe", q: "42. Jak zapiszemy liczbę dziesiętną <code>25</code> w systemie szesnastkowym?", options: ["A. 19", "B. 1A", "C. 25", "D. F9"], answer: 0, exp: "25 = 1 * 16 + 9, więc w systemie szesnastkowym zapisujemy to jako 19." },
+    { source: "nowe", category: "Systemy liczbowe", q: "43. Ile bitów mieści się w 2 bajtach?", options: ["A. 8", "B. 16", "C. 32", "D. 1024"], answer: 1, exp: "1 bajt = 8 bitów, więc 2 bajty = 16 bitów." },
+    { source: "nowe", category: "Programowanie (Python)", q: "44. Co wyświetli poniższy kod w Pythonie?<br><code>x = [10, 20, 30, 40]<br>print(x[2])</code>", options: ["A. 10", "B. 20", "C. 30", "D. 40"], answer: 2, exp: "W Pythonie indeksowanie list zaczyna się od 0: x[0]=10, x[1]=20, x[2]=30." },
+    { source: "nowe", category: "Programowanie (Python)", q: "45. Jaki będzie wynik działania <code>17 // 5</code> w Pythonie?", options: ["A. 3.4", "B. 2", "C. 3", "D. 4"], answer: 2, exp: "Operator // oznacza dzielenie całkowite (bez reszty). 17 mieści trzy pełne piątki." },
+    { source: "nowe", category: "Programowanie (Python)", q: "46. Które słowo kluczowe w Pythonie służy do definiowania własnej funkcji?", options: ["A. func", "B. function", "C. def", "D. define"], answer: 2, exp: "Funkcje w Pythonie definiujemy za pomocą słowa kluczowego def." },
+    { source: "nowe", category: "Arkusz kalkulacyjny", q: "47. Który adres komórki ma zablokowaną tylko kolumnę, ale wiersz może się zmieniać podczas kopiowania?", options: ["A. $B$4", "B. B$4", "C. $B4", "D. B4"], answer: 2, exp: "Znak $ stoi bezpośrednio przed literą kolumny B ($B4), więc blokuje tylko kolumnę." },
+    { source: "nowe", category: "Arkusz kalkulacyjny", q: "48. Która funkcja w Excelu zlicza tylko te komórki z zakresu A1:A10, które zawierają wartość większą niż 50?", options: ["A. =ILE.NIEPUSTYCH(A1:A10;\">50\")", "B. =LICZ.JEŻELI(A1:A10;\">50\")", "C. =SUMA.JEŻELI(A1:A10;\">50\")", "D. =ILE.LICZB(A1:A10;50)"], answer: 1, exp: "Funkcja LICZ.JEŻELI zlicza komórki spełniające podane kryterium." },
+    { source: "nowe", category: "Arkusz kalkulacyjny", q: "49. Co oznacza błąd <code>#DZIEL/0!</code> w arkuszu kalkulacyjnym?", options: ["A. Kolumna jest za wąska", "B. Próba dzielenia przez zero lub pustą komórkę", "C. Błędna nazwa funkcji", "D. Brak pliku źródłowego"], answer: 1, exp: "Błąd #DZIEL/0! pojawia się, gdy w mianowniku dzielenia znajduje się zero lub pusta komórka." },
+    { source: "nowe", category: "HTML i CSS", q: "50. Który znacznik HTML służy do wstawienia największego nagłówka na stronie?", options: ["A. &lt;head&gt;", "B. &lt;h6&gt;", "C. &lt;h1&gt;", "D. &lt;header&gt;"], answer: 2, exp: "Nagłówki mają hierarchię od h1 (najważniejszy/największy) do h6 (najmniejszy)." },
+    { source: "nowe", category: "HTML i CSS", q: "51. Jak w CSS odwołać się do elementu posiadającego atrybut <code>id=\"menu\"</code>?", options: ["A. .menu", "B. #menu", "C. *menu", "D. menu"], answer: 1, exp: "Identyfikatory (id) w CSS poprzedzamy znakiem kratki (#), natomiast klasy (class) kropką (.)." },
+    { source: "nowe", category: "HTML i CSS", q: "52. Który atrybut znacznika <code>&lt;img&gt;</code> zawiera tekst alternatywny wyświetlany, gdy obrazek się nie załaduje?", options: ["A. title", "B. src", "C. alt", "D. href"], answer: 2, exp: "Atrybut alt (alternative text) opisuje obraz dla czytników ekranu oraz gdy plik graficzny jest niedostępny." },
+    { source: "nowe", category: "HTML i CSS", q: "53. Która właściwość CSS odpowiada za margines zewnętrzny elementu?", options: ["A. padding", "B. spacing", "C. margin", "D. border"], answer: 2, exp: "Właściwość margin ustawia przestrzeń na zewnątrz obramowania elementu." },
+    { source: "nowe", category: "Sieci komputerowe", q: "54. Który protokół zapewnia szyfrowane, bezpieczne połączenie ze stroną internetową?", options: ["A. HTTP", "B. FTP", "C. HTTPS", "D. SMTP"], answer: 2, exp: "HTTPS (Hypertext Transfer Protocol Secure) szyfruje przesyłane dane przy użyciu certyfikatu SSL/TLS." },
+    { source: "nowe", category: "Sieci komputerowe", q: "55. Jak nazywa się system tłumaczący nazwy domenowe (np. google.pl) na adresy IP?", options: ["A. DHCP", "B. DNS", "C. VPN", "D. LAN"], answer: 1, exp: "DNS (Domain Name System) działa jak książka telefoniczna Internetu, zamieniając nazwy na adresy IP." },
+    { source: "nowe", category: "Bezpieczeństwo", q: "56. Wyłudzanie poufnych danych (np. haseł do banku) poprzez podszywanie się pod zaufaną instytucję w e-mailu to:", options: ["A. Ransomware", "B. Phishing", "C. Spam", "D. Firewall"], answer: 1, exp: "Phishing to metoda oszustwa polegająca na podszywaniu się pod znaną firmę lub urząd w celu wyłudzenia danych." },
+    { source: "nowe", category: "Bezpieczeństwo", q: "57. Złośliwe oprogramowanie, które szyfruje pliki na dysku ofiary i żąda okupu za ich odblokowanie, to:", options: ["A. Spyware", "B. Adware", "C. Ransomware", "D. Trojan"], answer: 2, exp: "Ransomware (od ang. ransom – okup) blokuje dostęp do danych i wymusza zapłatę." },
+    { source: "nowe", category: "Algorytmika", q: "58. Ile porównań w najgorszym przypadku wykona wyszukiwanie binarne w posortowanej tablicy 64-elementowej?", options: ["A. 64", "B. 32", "C. 7", "D. 16"], answer: 2, exp: "Wyszukiwanie binarne dzieli zbiór na pół w każdym kroku. 2^6 = 64, więc potrzeba maksymalnie 7 kroków." },
+    { source: "nowe", category: "Algorytmika", q: "59. Który algorytm służy do wyznaczania wszystkich liczb pierwszych mniejszych od zadanej liczby n?", options: ["A. Algorytm Euklidesa", "B. Sito Eratostenesa", "C. Sortowanie bąbelkowe", "D. Ciąg Fibonacciego"], answer: 1, exp: "Sito Eratostenesa wykreśla kolejne wielokrotności liczb pierwszych, pozostawiając tylko liczby pierwsze." },
+    { source: "nowe", category: "Algorytmika", q: "60. Jaka jest złożoność czasowa wyszukiwania liniowego (przeglądania element po elemencie) w tablicy o n elementach?", options: ["A. O(1)", "B. O(log n)", "C. O(n)", "D. O(n^2)"], answer: 2, exp: "W najgorszym przypadku trzeba sprawdzić wszystkie n elementów, stąd złożoność liniowa O(n)." },
+    { source: "nowe", category: "Sprzęt komputerowy", q: "61. Który rodzaj pamięci komputera jest pamięcią ulotną (traci zawartość po odłączeniu zasilania)?", options: ["A. SSD", "B. HDD", "C. RAM", "D. ROM"], answer: 2, exp: "Pamięć RAM (pamięć operacyjna) przechowuje dane tylko wtedy, gdy komputer jest zasilany." },
+    { source: "nowe", category: "Grafika komputerowa", q: "62. Jaki model barw stosuje się standardowo do wyświetlania obrazu na monitorach i ekranach?", options: ["A. CMYK", "B. RGB", "C. PANTONE", "D. Grayscale"], answer: 1, exp: "RGB (Red, Green, Blue) to model addytywny używany w urządzeniach emitujących światło (ekrany). CMYK stosuje się w druku." },
+    { source: "nowe", category: "Grafika komputerowa", q: "63. Który skrót oznacza rozdzielczość druku wyrażoną w punktach na cal?", options: ["A. FPS", "B. DPI", "C. Mbps", "D. Hz"], answer: 1, exp: "DPI (Dots Per Inch) określa liczbę plamek tuszu przypadającą na jeden cal wydruku." },
+    { source: "nowe", category: "Programowanie (P/F)", q: "64. Oceń zdanie: W języku Python wcięcia (spacje/tabulatory) w kodzie mają znaczenie składniowe i wyznaczają bloki kodu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. W Pythonie bloki kodu wyznaczają wcięcia, a nie nawiasy klamrowe." },
+    { source: "nowe", category: "HTML i CSS (P/F)", q: "65. Oceń zdanie: Znacznik <code>&lt;br&gt;</code> w HTML wymaga znacznika zamykającego <code>&lt;/br&gt;</code>.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Znacznik br (złamanie linii) jest znacznikiem pustym i nie posiada znacznika zamykającego." },
+    { source: "nowe", category: "Arkusz kalkulacyjny (P/F)", q: "66. Oceń zdanie: Funkcja <code>=MAX(A1:A10)</code> zwraca sumę wszystkich wartości z podanego zakresu.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Funkcja MAX zwraca największą wartość ze wskazanego zakresu." },
+    { source: "nowe", category: "Bazy danych", q: "67. Jak w relacyjnej bazie danych nazywa się pojedynczy wiersz tabeli przechowujący dane o jednym obiekcie?", options: ["A. Pole (kolumna)", "B. Rekord", "C. Kwerenda", "D. Klucz obcy"], answer: 1, exp: "Wiersz w tabeli bazy danych to rekord, a kolumna to pole (atrybut)." },
+    { source: "nowe", category: "Bazy danych", q: "68. Które polecenie języka SQL służy do pobierania danych z tabeli?", options: ["A. INSERT", "B. UPDATE", "C. SELECT", "D. DELETE"], answer: 2, exp: "Polecenie SELECT służy do wyszukiwania i pobierania danych z bazy." },
+    { source: "nowe", category: "Algorytmika (P/F)", q: "69. Oceń zdanie: Liczba 1 jest najmniejszą liczbą pierwszą.", options: ["Prawda (P)", "Fałsz (F)"], answer: 1, exp: "Fałsz. Liczba 1 nie jest ani pierwsza, ani złożona. Najmniejszą liczbą pierwszą jest 2." },
+    { source: "nowe", category: "Druk 3D (P/F)", q: "70. Oceń zdanie: Popularny materiał termoplastyczny (filament) używany w domowych drukarkach 3D FDM to PLA.", options: ["Prawda (P)", "Fałsz (F)"], answer: 0, exp: "Prawda. PLA (polilaktyd) to biodegradowalny i najpopularniejszy filament w druku 3D." }
+];
+
+let activeQuestions = [];
+let currentIndex = 0;
+let userAnswers = [];
+let currentMode = 'all';
+
+function setMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    initQuiz();
+}
+
+function initQuiz() {
+    if (currentMode === 'all') {
+        activeQuestions = [...allQuestions];
+    } else {
+        activeQuestions = allQuestions.filter(q => q.source === currentMode);
+    }
+    currentIndex = 0;
+    userAnswers = new Array(activeQuestions.length).fill(null);
+
+    document.getElementById('summary-box').style.display = 'none';
+    document.getElementById('quiz-box').style.display = 'block';
+    renderQuestion();
+}
+
+function getScore() {
+    let score = 0;
+    for (let i = 0; i < activeQuestions.length; i++) {
+        if (userAnswers[i] !== null && userAnswers[i] === activeQuestions[i].answer) {
+            score++;
+        }
+    }
+    return score;
+}
+
+function renderQuestion() {
+    const q = activeQuestions[currentIndex];
+    const total = activeQuestions.length;
+
+    document.getElementById('q-counter').innerText = `Pytanie ${currentIndex + 1} z ${total}`;
+    document.getElementById('score-counter').innerText = `Punkty: ${getScore()}`;
+    document.getElementById('progress-fill').style.width = `${((currentIndex + 1) / total) * 100}%`;
+
+    document.getElementById('q-category').innerText = `Dział: ${q.category}`;
+    const badge = document.getElementById('q-badge');
+    if (q.source === 'arkusz') {
+        badge.innerText = 'Z arkusza';
+        badge.className = 'source-badge badge-arkusz';
+    } else {
+        badge.innerText = 'Dodatkowe';
+        badge.className = 'source-badge badge-nowe';
+    }
+
+    document.getElementById('q-text').innerHTML = q.q;
+
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '';
+
+    const answered = userAnswers[currentIndex] !== null;
+
+    q.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = optText;
+        btn.disabled = answered;
+
+        if (answered) {
+            if (idx === q.answer) {
+                btn.classList.add('correct');
+            } else if (idx === userAnswers[currentIndex]) {
+                btn.classList.add('wrong');
+            }
+        } else {
+            btn.onclick = () => selectAnswer(idx);
+        }
+
+        optionsContainer.appendChild(btn);
+    });
+
+    const expBox = document.getElementById('explanation-box');
+    if (answered) {
+        expBox.innerHTML = `<strong>Wyjaśnienie:</strong> ${q.exp}`;
+        expBox.style.display = 'block';
+    } else {
+        expBox.style.display = 'none';
+    }
+
+    document.getElementById('prev-btn').disabled = (currentIndex === 0);
+    const nextBtn = document.getElementById('next-btn');
+    nextBtn.innerHTML = (currentIndex === total - 1) ? 'Zakończ quiz &check;' : 'Następne &rarr;';
+}
+
+function selectAnswer(idx) {
+    userAnswers[currentIndex] = idx;
+    renderQuestion();
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+    }
+}
+
+function nextQuestion() {
+    if (currentIndex < activeQuestions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+    } else {
+        showSummary();
+    }
+}
+
+function showSummary() {
+    document.getElementById('quiz-box').style.display = 'none';
+    const summaryBox = document.getElementById('summary-box');
+    summaryBox.style.display = 'block';
+
+    const score = getScore();
+    const total = activeQuestions.length;
+    const percent = Math.round((score / total) * 100);
+
+    document.getElementById('final-percent').innerText = `${percent}%`;
+    document.getElementById('final-points').innerText = `${score} / ${total} pkt`;
+
+    let msg = '';
+    if (percent >= 85) msg = 'Świetny wynik! Jesteś doskonale przygotowany do etapu rejonowego.';
+    else if (percent >= 60) msg = 'Dobry wynik! Warto jeszcze powtórzyć zagadnienia, w których pojawiły się błędy.';
+    else msg = 'Dobry początek! Przejrzyj wyjaśnienia i spróbuj ponownie, aby utrwalić materiał.';
+
+    document.getElementById('final-message').innerText = msg;
+}
+
+function restartQuiz() {
+    initQuiz();
+}
+
+initQuiz();
+</script>
+
+</body>
+</html>
